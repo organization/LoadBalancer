@@ -15,7 +15,6 @@ use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\network\Network;
 use ifteam\LoadBalancer\dummy\DummyInterface;
 use ifteam\LoadBalancer\dummy\DummyPlayer;
-use pocketmine\utils\Utils;
 use pocketmine\command\CommandSender;
 use ifteam\LoadBalancer\task\GetExternalIPAsyncTask;
 use pocketmine\command\Command;
