@@ -12,7 +12,6 @@ use ifteam\CustomPacket\event\CustomPacketReceiveEvent;
 use ifteam\CustomPacket\DataPacket;
 use ifteam\CustomPacket\CPAPI;
 use pocketmine\event\server\DataPacketReceiveEvent;
-use pocketmine\network\Network;
 use ifteam\LoadBalancer\dummy\DummyInterface;
 use ifteam\LoadBalancer\dummy\DummyPlayer;
 use pocketmine\command\CommandSender;
@@ -191,7 +190,7 @@ class LoadBalancer extends PluginBase implements Listener {
 					if ($priority ["ip"] == "127.0.0.1" or $priority ["ip"] == "0.0.0.0") {
 						$priority ["ip"] = $this->externalIp;
 					}
-					$event->getPlayer ()->dataPacket ( (new StrangePacket ( $priority ["ip"], $priority ["port"] ))->setChannel ( Network::CHANNEL_ENTITY_SPAWNING ) );
+					$event->getPlayer ()->dataPacket ( (new StrangePacket ( $priority ["ip"], $priority ["port"] )) );
 					$event->setCancelled ();
 					return true;
 				}
