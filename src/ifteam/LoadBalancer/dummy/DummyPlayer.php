@@ -30,7 +30,7 @@ class DummyPlayer extends Player {
 	public function getDisplayName() {
 		return $this->name;
 	}
-	public function sendChunk($x, $z, $payload){
+	public function sendChunk($x, $z, $payload, $ordering){
 		return;
 	}
 	public function getName() {

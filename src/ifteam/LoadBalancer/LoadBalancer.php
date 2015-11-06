@@ -19,6 +19,7 @@ use ifteam\LoadBalancer\task\GetExternalIPAsyncTask;
 use pocketmine\command\Command;
 use pocketmine\command\PluginCommand;
 use ifteam\LoadBalancer\api\EDGEControl;
+use pocketmine\network\protocol\Info;
 
 class LoadBalancer extends PluginBase implements Listener {
 	private static $instance = null; /* Plug-in instance variables */
@@ -147,7 +148,8 @@ class LoadBalancer extends PluginBase implements Listener {
 	 * @return boolean
 	 */
 	public function onDataPacketReceived(DataPacketReceiveEvent $event) {
-		if ($event->getPacket ()->pid () == 0x82) {
+		if ($event->getPacket ()->pid () == Info::LOGIN_PACKET) {
+			echo "0x82 catched\n";
 			if (! isset ( $this->cooltime [$event->getPlayer ()->getAddress ()] )) {
 				$this->cooltime [$event->getPlayer ()->getAddress ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 			} else {
@@ -158,9 +160,12 @@ class LoadBalancer extends PluginBase implements Listener {
 				}
 				$this->cooltime [$event->getPlayer ()->getAddress ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 			}
+			echo "a1\n";
 			if (isset ( $this->db ["mode"] ))
 				if ($this->db ["mode"] == "master") {
+					echo "a2\n";
 					foreach ( $this->updateList as $ipport => $data ) {
+						echo "a3\n";
 						if (! isset ( $priority )) {
 							$priority ["ip"] = explode ( ":", $ipport )[0];
 							$priority ["port"] = $this->updateList [$ipport] ["port"];
@@ -190,6 +195,7 @@ class LoadBalancer extends PluginBase implements Listener {
 					if ($priority ["ip"] == "127.0.0.1" or $priority ["ip"] == "0.0.0.0") {
 						$priority ["ip"] = $this->externalIp;
 					}
+					echo "a3\n";
 					$event->getPlayer ()->dataPacket ( (new StrangePacket ( $priority ["ip"], $priority ["port"] )) );
 					$event->setCancelled ();
 					return true;
