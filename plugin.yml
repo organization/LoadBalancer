@@ -1,6 +1,6 @@
 name: LoadBalancer
 main: ifteam\LoadBalancer\LoadBalancer
-version: 0.3-Alpha
+version: 0.5-Alpha
 author: ifteam
 api:
 - 1.13.0

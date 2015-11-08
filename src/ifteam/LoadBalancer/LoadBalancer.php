@@ -20,6 +20,7 @@ use pocketmine\command\Command;
 use pocketmine\command\PluginCommand;
 use ifteam\LoadBalancer\api\EDGEControl;
 use pocketmine\network\protocol\Info;
+use pocketmine\event\server\DataPacketSendEvent;
 
 class LoadBalancer extends PluginBase implements Listener {
 	private static $instance = null; /* Plug-in instance variables */
@@ -45,31 +46,31 @@ class LoadBalancer extends PluginBase implements Listener {
 		/* Instance assignment */
 		if (self::$instance == null) {
 			self::$instance = $this;
-		}
-		
-		/* If Not Exist CustomPacket Plugin, This Plugin will be disabled */
-		if ($this->getServer ()->getPluginManager ()->getPlugin ( "CustomPacket" ) === null) {
-			$this->getServer ()->getLogger ()->critical ( "[CustomPacket Example] CustomPacket plugin was not found. This plugin will be disabled." );
-			$this->getServer ()->getPluginManager ()->disablePlugin ( $this );
-			return;
-		}
-		
-		/* Register command */
-		$this->registerCommand ( $this->get ( "loadbalancer" ), "loadbalancer.control", $this->get ( "loadbalancer-help" ), "/" . $this->get ( "loadbalancer" ) );
-		
-		/* Get External IP To AsyncTask */
-		$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GetExternalIPAsyncTask ( $this->getName () ) );
-		
-		/* Listeners registered on PocketMine */
-		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
-		
-		if (! isset ( $this->db ["mode"] )) {
-			$this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->get ( "please-choose-mode" ) );
-		} else {
-			if ($this->db ["mode"] == "master")
-				$this->dummyInterface = new DummyInterface ( $this->getServer () );
-			$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new LoadBalancerTask ( $this ), 20 );
-			new EDGEControl ( $this );
+			
+			/* If Not Exist CustomPacket Plugin, This Plugin will be disabled */
+			if ($this->getServer ()->getPluginManager ()->getPlugin ( "CustomPacket" ) === null) {
+				$this->getServer ()->getLogger ()->critical ( "[CustomPacket Example] CustomPacket plugin was not found. This plugin will be disabled." );
+				$this->getServer ()->getPluginManager ()->disablePlugin ( $this );
+				return;
+			}
+			
+			/* Register command */
+			$this->registerCommand ( $this->get ( "loadbalancer" ), "loadbalancer.control", $this->get ( "loadbalancer-help" ), "/" . $this->get ( "loadbalancer" ) );
+			
+			/* Get External IP To AsyncTask */
+			$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GetExternalIPAsyncTask ( $this->getName () ) );
+			
+			/* Listeners registered on PocketMine */
+			$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
+			
+			if (! isset ( $this->db ["mode"] )) {
+				$this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->get ( "please-choose-mode" ) );
+			} else {
+				if ($this->db ["mode"] == "master")
+					$this->dummyInterface = new DummyInterface ( $this->getServer () );
+				$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new LoadBalancerTask ( $this ), 20 );
+				new EDGEControl ( $this );
+			}
 		}
 	}
 	/**
@@ -141,6 +142,12 @@ class LoadBalancer extends PluginBase implements Listener {
 			}
 		}
 	}
+	public function onDataPacketSend(DataPacketSendEvent $event) {
+		if ($this->db ["mode"] == "master") {
+			if (! $event->getPacket () instanceof StrangePacket)
+				$event->setCancelled ();
+		}
+	}
 	/**
 	 * Connection packets Event handling
 	 *
@@ -163,7 +170,7 @@ class LoadBalancer extends PluginBase implements Listener {
 				if ($this->db ["mode"] == "master") {
 					foreach ( $this->updateList as $ipport => $data ) {
 						if (! isset ( $priority )) {
-							$priority ["ip"] = explode ( ":", $ipport )[0];
+							$priority ["ip"] = explode ( ":", $ipport ) [0];
 							$priority ["port"] = $this->updateList [$ipport] ["port"];
 							$priority ["list"] = count ( $this->updateList [$ipport] ["list"] );
 							continue;
@@ -177,7 +184,7 @@ class LoadBalancer extends PluginBase implements Listener {
 							if (count ( $data ["list"] ) >= $data ["max"]) {
 								continue;
 							}
-							$priority ["ip"] = explode ( ":", $ipport )[0];
+							$priority ["ip"] = explode ( ":", $ipport ) [0];
 							$priority ["port"] = $this->updateList [$ipport] ["port"];
 							$priority ["list"] = count ( $this->updateList [$ipport] ["list"] );
 						}
@@ -192,7 +199,7 @@ class LoadBalancer extends PluginBase implements Listener {
 						$priority ["ip"] = $this->externalIp;
 					}
 					$event->getPlayer ()->dataPacket ( (new StrangePacket ( $priority ["ip"], $priority ["port"] )) );
-					$event->setCancelled ();
+					// $event->setCancelled ();
 					return true;
 				}
 		}
@@ -468,7 +475,7 @@ class LoadBalancer extends PluginBase implements Listener {
 	 * @param CustomPacketReceiveEvent $ev        	
 	 */
 	public function onPacketReceive(CustomPacketReceiveEvent $ev) {
-		$data = json_decode ( $ev->getPacket ()->data );
+		$data = ( array ) json_decode ( $ev->getPacket ()->data, true );
 		if (! isset ( $data [3] ) or $data [0] != $this->db ["passcode"])
 			return;
 		if ($this->db ["mode"] == "master") {

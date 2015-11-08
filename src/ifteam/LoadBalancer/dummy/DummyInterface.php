@@ -31,6 +31,7 @@ class DummyInterface implements SourceInterface {
 			$this->ackStore [$username] = [ ];
 			$this->replyStore [$username] = [ ];
 			$this->server->addPlayer ( $username, $player );
+			$this->server->addOnlinePlayer($player);
 			return $player;
 		} else {
 			return false;
