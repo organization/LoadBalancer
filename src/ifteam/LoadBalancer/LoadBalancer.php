@@ -119,13 +119,16 @@ class LoadBalancer extends PluginBase implements Listener {
 					continue;
 				if (! isset ( $allPlayerList [$onlinePlayer->getName ()] )) {
 					$onlinePlayer->loggedIn = false;
+					$this->getServer()->removeOnlinePlayer($onlinePlayer);
+					$this->getServer()->removePlayer($onlinePlayer);
 					$onlinePlayer->close ();
 				}
 			}
 			foreach ( $allPlayerList as $name => $bool ) {
 				$findPlayer = $this->getServer ()->getPlayer ( $name );
-				if ($findPlayer == null)
+				if ($findPlayer == null){
 					$this->dummyInterface->openSession ( $name );
+				}
 			}
 		} else if ($this->db ["mode"] == "slave") {
 			$playerlist = [ ];

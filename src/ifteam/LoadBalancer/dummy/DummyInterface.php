@@ -24,18 +24,14 @@ class DummyInterface implements SourceInterface {
 		unset ( $this->replyStore [$player->getName ()] );
 	}
 	public function openSession($username, $address = "LOADBALANCER", $port = 0) {
-		if (! isset ( $this->replyStore [$username] )) {
-			$player = new DummyPlayer ( $this, null, $address, $port );
-			$player->setName ( $username );
-			$this->sessions->attach ( $player, $username );
-			$this->ackStore [$username] = [ ];
-			$this->replyStore [$username] = [ ];
-			$this->server->addPlayer ( $username, $player );
-			$this->server->addOnlinePlayer($player);
-			return $player;
-		} else {
-			return false;
-		}
+		$player = new DummyPlayer ( $this, null, $address, $port );
+		$player->setName ( $username );
+		$this->sessions->attach ( $player, $username );
+		$this->ackStore [$username] = [ ];
+		$this->replyStore [$username] = [ ];
+		$this->server->addPlayer ( $username, $player );
+		$this->server->addOnlinePlayer ( $player );
+		return $player;
 	}
 	public function putPacket(Player $player, DataPacket $packet, $needACK = \false, $immediate = \true) {
 		return true;

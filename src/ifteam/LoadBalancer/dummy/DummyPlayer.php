@@ -37,6 +37,9 @@ class DummyPlayer extends Player {
 	public function getUniqueId(){
 		return $this->randomUUID;
 	}
+	public function getRawUniqueId(){
+		return $this->randomUUID->toString();
+	}
 	public function sendChunk($x, $z, $payload, $ordering = FullChunkDataPacket::ORDER_COLUMNS){
 		return;
 	}
